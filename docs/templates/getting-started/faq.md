@@ -16,7 +16,7 @@
 - [How can I remove a layer from a Sequential model?](#how-can-i-remove-a-layer-from-a-sequential-model)
 - [How can I use pre-trained models in Keras?](#how-can-i-use-pre-trained-models-in-keras)
 - [How can I use HDF5 inputs with Keras?](#how-can-i-use-hdf5-inputs-with-keras)
-- [Where is the Keras configuration filed stored?](#where-is-the-keras-configuration-filed-stored)
+- [Where is the Keras configuration file stored?](#where-is-the-keras-configuration-file-stored)
 
 ---
 
@@ -38,7 +38,7 @@ Please cite Keras in your publications if it helps your research. Here is an exa
 
 ### How can I run Keras on GPU?
 
-If you are running on the TensorFlow backend, your code will automatically run on GPU if any available GPU is detected.
+If you are running on the TensorFlow or CNTK backends, your code will automatically run on GPU if any available GPU is detected.
 
 If you are running on the Theano backend, you can use one of the following methods:
 
@@ -424,7 +424,7 @@ with h5py.File('input/file.hdf5', 'r') as f:
 
 ---
 
-### Where is the Keras configuration filed stored?
+### Where is the Keras configuration file stored?
 
 The default directory where all Keras data is stored is:
 
