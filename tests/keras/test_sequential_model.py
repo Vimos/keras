@@ -98,7 +98,7 @@ def test_sequential_fit_generator():
     model.fit_generator(data_generator(True), 5, epochs,
                         validation_data=data_generator(False),
                         validation_steps=3)
-    model.fit_generator(data_generator(True), 5, epochs, max_q_size=2)
+    model.fit_generator(data_generator(True), 5, epochs, max_queue_size=2)
     model.evaluate(x_train, y_train)
 
 
@@ -133,8 +133,8 @@ def test_sequential(in_tmpdir):
 
     loss = model.evaluate(x_test, y_test)
 
-    prediction = model.predict_generator(data_generator(x_test, y_test), 1, max_q_size=2, verbose=1)
-    gen_loss = model.evaluate_generator(data_generator(x_test, y_test, 50), 1, max_q_size=2)
+    prediction = model.predict_generator(data_generator(x_test, y_test), 1, max_queue_size=2, verbose=1)
+    gen_loss = model.evaluate_generator(data_generator(x_test, y_test, 50), 1, max_queue_size=2)
     pred_loss = K.eval(K.mean(losses.get(model.loss)(K.variable(y_test), K.variable(prediction))))
 
     assert(np.isclose(pred_loss, loss))
@@ -254,6 +254,17 @@ def test_sequential_count_params():
 
     model.compile('sgd', 'binary_crossentropy')
     assert(n == model.count_params())
+
+
+@keras_test
+def test_rebuild_model():
+    model = Sequential()
+    model.add(Dense(128, input_shape=(784,)))
+    model.add(Dense(64))
+    assert(model.get_layer(index=-1).output_shape == (None, 64))
+
+    model.add(Dense(32))
+    assert(model.get_layer(index=-1).output_shape == (None, 32))
 
 
 if __name__ == '__main__':

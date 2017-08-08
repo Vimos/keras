@@ -76,9 +76,6 @@ def test_trainable_weights():
     assert model.non_trainable_weights == weights
 
 
-@keras_test
-@pytest.mark.skipif((K.backend() == 'cntk'),
-                    reason="cntk does not support add learning_phase() as input")
 def test_learning_phase():
     a = Input(shape=(32,), name='input_a')
     b = Input(shape=(32,), name='input_b')
@@ -154,20 +151,20 @@ def test_node_construction():
     node = a_layer.inbound_nodes[a_node_index]
     assert node.outbound_layer == a_layer
 
-    assert type(node.inbound_layers) is list
+    assert isinstance(node.inbound_layers, list)
     assert node.inbound_layers == []
-    assert type(node.input_tensors) is list
+    assert isinstance(node.input_tensors, list)
     assert node.input_tensors == [a]
-    assert type(node.input_masks) is list
+    assert isinstance(node.input_masks, list)
     assert node.input_masks == [None]
-    assert type(node.input_shapes) is list
+    assert isinstance(node.input_shapes, list)
     assert node.input_shapes == [(None, 32)]
 
-    assert type(node.output_tensors) is list
+    assert isinstance(node.output_tensors, list)
     assert node.output_tensors == [a]
-    assert type(node.output_shapes) is list
+    assert isinstance(node.output_shapes, list)
     assert node.output_shapes == [(None, 32)]
-    assert type(node.output_masks) is list
+    assert isinstance(node.output_masks, list)
     assert node.output_masks == [None]
 
     dense = Dense(16, name='dense_1')
@@ -579,6 +576,7 @@ def test_recursion_with_bn_and_loss():
     model2.fit(x, y, verbose=0, epochs=1)
 
 
+@keras_test
 def test_shared_layer_depth_is_correct():
     # Basic outline here: we have a shared embedding layer, and two inputs that go through
     # different depths of computation in the graph before the final output.  We need the computed
@@ -586,9 +584,9 @@ def test_shared_layer_depth_is_correct():
     # before anything else happens.  That's what we're testing.
     from keras.layers import Embedding, Input, Dense, Concatenate
     from keras.models import Model
-    input1 = Input(shape=(10,), name="input1")
-    input2 = Input(shape=(10,), name="input2")
-    embedding_layer = Embedding(name="embedding", input_dim=5, output_dim=10)
+    input1 = Input(shape=(10,), name='input1')
+    input2 = Input(shape=(10,), name='input2')
+    embedding_layer = Embedding(name='embedding', input_dim=5, output_dim=10)
     embedded_input1 = embedding_layer(input1)
     embedded_input2 = embedding_layer(input2)
     transformed_input2 = Dense(6)(Dense(5)(Dense(3)(embedded_input2)))
@@ -604,6 +602,28 @@ def test_shared_layer_depth_is_correct():
                 input2_depth = depth
     assert input1_depth != -1
     assert input1_depth == input2_depth
+
+
+@keras_test
+def test_layer_sharing_at_heterogenous_depth():
+    x_val = np.random.random((10, 5))
+
+    x = Input(shape=(5,))
+    A = Dense(5, name='A')
+    B = Dense(5, name='B')
+    output = A(B(A(B(x))))
+    M = Model(x, output)
+
+    output_val = M.predict(x_val)
+
+    config = M.get_config()
+    weights = M.get_weights()
+
+    M2 = Model.from_config(config)
+    M2.set_weights(weights)
+
+    output_val_2 = M2.predict(x_val)
+    np.testing.assert_allclose(output_val, output_val_2, atol=1e-6)
 
 
 if __name__ == '__main__':
