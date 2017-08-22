@@ -274,13 +274,15 @@ def to_dense(tensor):
 name_scope = tf.name_scope
 
 
-def variable(value, dtype=None, name=None):
+def variable(value, dtype=None, name=None, constraint=None):
     """Instantiates a variable and returns it.
 
     # Arguments
         value: Numpy array, initial value of the tensor.
         dtype: Tensor type.
         name: Optional name string for the tensor.
+        constraint: Optional projection function to be
+            applied to the variable after an optimizer update.
 
     # Returns
         A variable instance (with Keras metadata included).
@@ -317,6 +319,8 @@ def variable(value, dtype=None, name=None):
     elif hasattr(value, 'get_shape'):
         v._keras_shape = int_shape(value)
     v._uses_learning_phase = False
+    # TODO: move to `tf.get_variable` when supported in public release.
+    v.constraint = constraint
     return v
 
 
@@ -436,6 +440,21 @@ def placeholder(shape=None, ndim=None, dtype=None, sparse=False, name=None):
     x._keras_shape = shape
     x._uses_learning_phase = False
     return x
+
+
+def is_placeholder(x):
+    """Returns whether `x` is a placeholder.
+
+    # Arguments
+        x: A candidate placeholder.
+
+    # Returns
+        Boolean.
+    """
+    try:
+        return x.op.type == 'Placeholder'
+    except AttributeError:
+        return False
 
 
 def shape(x):
